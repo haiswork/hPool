@@ -1,6 +1,7 @@
 package hpool
 
 import (
+	"reflect"
 	"sync/atomic"
 )
 
@@ -52,7 +53,7 @@ func (p *Pool) Get() interface{} {
 }
 
 func (p *Pool) Put(i interface{}) {
-	if i == nil {
+	if i == nil || reflect.ValueOf(i).IsNil() {
 		return
 	}
 	if p.debug {
