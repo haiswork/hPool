@@ -2,15 +2,20 @@ package hpool
 
 import "github.com/hqpko/hbuffer"
 
-func NewBufferPool(poolSize, maxBufferSize int) *Pool {
-	p := NewPool(
-		func() interface{} {
-			return hbuffer.NewBuffer()
-		},
-		poolSize,
-	)
+type BufferPool struct {
+	pool *Pool
+}
 
-	p.SetPutChecker(func(i interface{}) bool {
+func NewBufferPool(poolSize, maxBufferSize int) *BufferPool {
+	bufferPool := &BufferPool{
+		pool: NewPool(
+			func() interface{} {
+				return hbuffer.NewBuffer()
+			},
+			poolSize,
+		),
+	}
+	bufferPool.pool.SetPutChecker(func(i interface{}) bool {
 		bf, ok := i.(*hbuffer.Buffer)
 		if !ok || bf == nil {
 			return true
@@ -19,5 +24,16 @@ func NewBufferPool(poolSize, maxBufferSize int) *Pool {
 		return bf.Cap() > maxBufferSize
 	})
 
-	return p
+	return bufferPool
+}
+
+func (bf *BufferPool) Get() *hbuffer.Buffer {
+	return bf.pool.Get().(*hbuffer.Buffer)
+}
+
+func (bf *BufferPool) Put(buffer *hbuffer.Buffer) {
+	if buffer == nil {
+		return
+	}
+	bf.pool.Put(buffer)
 }
